@@ -1,4 +1,16 @@
+/**
+ * 
+ * Some base definitions for the map which are required for the game to even work.
+ *
+ */
+
 class Tile {
+    /**
+     * 
+     * @param {int} state - representing the current state of the tile. Used for display and calculation purposes
+     * @param {int} row - representing which row the tile is
+     * @param {int} column - representing which column the tile is
+     */
     constructor(state, row, column) {
         if (this.constructor==Tile) {
             throw new Error("Cannot instantiate abstract class.");
@@ -6,16 +18,6 @@ class Tile {
         this.state = state;
         this.row=row;
         this.column=column;
-        this.edges = [];
-    }
-
-    /**
-     * 
-     * @param {int} otherRow 
-     * @param {int} otherColumn 
-     */
-    addEdge(otherRow, otherColumn) {
-        this.edges.add({row : otherRow, column : otherColumn});
     }
 
     /**
@@ -57,26 +59,40 @@ class Tile {
 
 class Board {
     
-    constructor() {
+    /**
+     * Initializes the Board. Subclasses must define this.tiles as well as call
+     *  calcETAMatrix to initialize this.etaMatrix.
+     * @param {int} rows - number of rows in board 
+     * @param {*} columns - number of columns in board
+     */
+    constructor(rows, columns) {
         if (this.constructor==Board) {
             throw new Error("Cannot instantiate abstract class.");
         }
-        // No idea how tiles are structured.
+        // No idea how tiles are structured. Must extend the Tile class.
         this.tiles = []; 
+
+        this.etaMatrix = [];
+        for (let i=0;i<rows;i++) {
+            this.tiles.push([]);
+            this.etaMatrix.push([]);
+            for (let j=0;j<columns;j++) this.tiles[i].push(undefined);
+            for (let j=0;j<columns;j++) this.etaMatrix[i].push(-1);
+        }
     }
     
     /**
      * 
      * @param {int} row 
      * @param {int} column 
-     * @returns the state of the tile with row row and column column.
+     * @returns an integer, the state of the tile with row row and column column.
      */
     getTileState(row, column) {
         return this.tiles[row][column].getState();
     }
-    
 
-    /**
+    
+     /**
      * Calculates and sets the estimated time of arrival for every tile from the given start tiles.
      * @param {Array} starts - An array of objects, each of form {row : row, column : column} indicating from which tiles to start the ETA calculations from.
      */
@@ -86,9 +102,26 @@ class Board {
     
     /**
      * 
+     * @returns an 2d integer array, containing how many steps must be taken for rats to reach each tile.
+     */
+    getETAMatrix() {
+        throw new Error("Must overwrite abstract method calcETAMatrix of class Board.");
+    }
+    
+    /**
+     * 
      * @returns an Object, which contains all the data of the board in some form
      */
     saveState() {
         throw new Error("Must overwrite abstract method saveState of class Board.");
+    }
+    
+    /**
+     * Performs a single update step for the given state.
+     * This should be where all the main logic is.
+     */
+    updateState() {
+        throw new Error("Must overwrite abstract method updateState of class Board.");
+        
     }
 }
