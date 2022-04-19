@@ -69,6 +69,8 @@ class Board {
         if (this.constructor==Board) {
             throw new Error("Cannot instantiate abstract class.");
         }
+        this.nRows = rows;
+        this.nCols = columns;
         // No idea how tiles are structured. Must extend the Tile class.
         this.tiles = []; 
 
