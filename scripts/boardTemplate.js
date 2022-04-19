@@ -127,3 +127,5 @@ class Board {
         
     }
 }
+
+export {Tile, Board};
