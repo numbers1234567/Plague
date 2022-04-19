@@ -83,7 +83,7 @@ class DisplayBoard {
      * Actually unhides the HTML element.
      */
     show() {
-        this.table.style.display = "none";
+        this.table.style.display = "block";
     }
     
     /**
@@ -91,6 +91,6 @@ class DisplayBoard {
      * Actually hides the HTML element.
      */
     hide() {
-        this.table.style.display = "block";
+        this.table.style.display = "none";
     }
 }
