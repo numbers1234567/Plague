@@ -18,6 +18,7 @@ class Tile {
         this.state = state;
         this.row=row;
         this.column=column;
+        this.edges = [];
     }
 
     /**
@@ -61,9 +62,11 @@ class Board {
     
     /**
      * Initializes the Board. Subclasses must define this.tiles as well as call
-     *  calcETAMatrix to initialize this.etaMatrix.
+     *  calcETAMatrix to initialize this.etaMatrix. Walls occupy entire tiles.
      * @param {int} rows - number of rows in board 
      * @param {*} columns - number of columns in board
+     * 
+     * Note: rows==columns==1 (mod 2).
      */
     constructor(rows, columns) {
         if (this.constructor==Board) {
