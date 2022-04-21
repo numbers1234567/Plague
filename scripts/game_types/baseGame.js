@@ -51,12 +51,12 @@ class BaseGameBoard extends Board {
         if (numPaths===undefined) numPaths = 3;
 
         // Generate start and target for player
-        let start = {row : Math.floor(Math.floor(Math.random()*(rows-1))/2)+1,
-                 column : Math.floor(Math.floor(Math.random()*(columns-1))/2)+1};
+        let start = {row : 1,
+                 column : 1};
         let end = {}
         do { // Until we are not getting end==start. Might define a different criteria later.
-            end = {row : Math.floor(Math.floor(Math.random()*(rows-1))/2)+1,
-                 column : Math.floor(Math.floor(Math.random()*(columns-1))/2)+1};
+            end = {row : rows-2,
+                 column : columns-2};
         } while (end.row==start.row && end.column==start.column);
 
         // Generate maze for player
@@ -89,6 +89,72 @@ class BaseGameBoard extends Board {
                 }
             }
         }
+
+        // Set start and end
+        this.tiles[start.row][start.column].updateState(statesEnum.player);
+        this.tiles[end.row][end.column].updateState(statesEnum.target);
+
+        // Run a randomized depth-first search algorithm to generate maze
+        let visited = [];
+        for (let i=0;i<rows;i++) {
+            visited.push([]);
+            for (let j=0;j<columns;j++) {
+                visited[i].push(false);
+            }
+        }
+
+        let stack = [{row : start.row, column : start.column}]
+        visited[start.row][start.column] = true;
+        while (stack.length > 0) { // Until all cells visited
+            let current = stack.pop();
+            console.log(current);
+
+            // Holds also invalid neighbors
+            let neighbors = [
+                {row : current.row-2, column : current.column},
+                {row : current.row+2, column : current.column},
+                {row : current.row, column : current.column-2},
+                {row : current.row, column : current.column+2}
+            ];
+            // Holds only valid neighbors
+            let newNeighbors = [];
+            let pushBack = false;
+
+            // Process neighbor cells
+            for (let i=0;i<4;i++) { 
+                // Invalid neighbor conditions
+                if (neighbors[i].row <= 0 || neighbors[i].row >= rows-1) continue;
+                if (neighbors[i].column <= 0 || neighbors[i].column >= columns-1) continue;
+                if (visited[neighbors[i].row][neighbors[i].column]) continue;
+
+                // Has unvisited neighbors, keep current in stack.
+                if (!pushBack) {
+                    pushBack = true;
+                    stack.push(current);
+                }
+                newNeighbors.push(neighbors[i]);
+            }
+            // Time to break a random neighbor wall
+            for (let i=0;i<newNeighbors.length;i++) { 
+                // Choose neighbor cell randomly 
+                if (Math.random() < 1/(newNeighbors.length-i)) {
+                    let chosen = newNeighbors[i];
+                    stack.push(chosen);
+                    visited[chosen.row][chosen.column] = true;
+                    // Break wall between
+                    this.tiles[(chosen.row+current.row)/2][(chosen.column+current.column)/2].updateState(statesEnum.empty);
+                }
+            }
+        }
+
+        // Run breadth first search from start and target
+
+        // ...
+
+        // Determine which walls to break to create new paths
+
+        // ... 
+
     }
 
     /**

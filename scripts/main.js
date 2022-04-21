@@ -6,8 +6,8 @@ let gameContainer = document.getElementById("main-section");
 let startButton = document.getElementById("start-button");
 
 function startGame() {
-    let board = new BaseGameBoard(11, 11);
-    let displayController = new DisplayBoard(document, gameContainer, board)
+    let board = new BaseGameBoard(21, 43);
+    let displayController = new DisplayBoard(document, gameContainer, board);
     displayController.updateDisplay();
 }
 

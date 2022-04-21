@@ -29,13 +29,11 @@ class DisplayBoard {
             for (let j=0;j<this.nCols;j++) {
                 // Create and place cell
                 let cell = document.createElement("td");
-                //cell.width = (100/this.nCols).toString() + "%";
-                //cell.height = (100/this.nRows).toString() + "%";
-                //cell.textContent = "bruh";
                 row.appendChild(cell);
+
                 let square = document.createElement("div");
-                square.classList.add("tile");
                 cell.appendChild(square);
+                square.classList.add("tile");
 
                 this.elements[i].push(square);
             }
