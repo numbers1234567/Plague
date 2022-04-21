@@ -1,4 +1,4 @@
-import {colorCodes, states, statesEnum} from "./states";
+import {colorCodes, statesEnum} from "./states.js";
 
 class DisplayBoard {
     
@@ -7,26 +7,37 @@ class DisplayBoard {
      * @param {Node} parent - HTML element which is the game container
      */
     constructor(document, parent, board) {
-        this.table = document.createElement("table");
         this.board = board; // We work under the assumption that this is not modified.
         this.nRows = board.nRows;
         this.nCols = board.nCols;
+        
+        this.table = document.createElement("table");
+        parent.appendChild(this.table);
+        //this.table.width="100%";
+        this.table.color = "red";
         
         this.elements = [];
         // Create HTML elements and mappings from position to element.
         for (let i=0;i<this.nRows;i++) {
             // Create and place row
             const row = document.createElement("tr");
-            parent.appendChild(row);
+            //row.width=this.table.width;
+            this.table.appendChild(row);
 
             this.elements.push([]);
             
             for (let j=0;j<this.nCols;j++) {
                 // Create and place cell
-                const cell = document.createElement("td");
+                let cell = document.createElement("td");
+                //cell.width = (100/this.nCols).toString() + "%";
+                //cell.height = (100/this.nRows).toString() + "%";
+                //cell.textContent = "bruh";
                 row.appendChild(cell);
+                let square = document.createElement("div");
+                square.classList.add("tile");
+                cell.appendChild(square);
 
-                this.elements[i].push(cell);
+                this.elements[i].push(square);
             }
         }
     }
@@ -58,12 +69,12 @@ class DisplayBoard {
      * @returns the color associated with the given tile state
      */
 
-    static stateToColor(state) {
+    stateToColor(state) {
         switch (state) {
-            case statesEnum.empty: return colorCodes.pureWhite;
-            case statesEnum.wall: return colorCodes.pureBlack;
-            case statesEnum.player: return colorCodes.pureRed;
-            case statesEnum.target: return colorCodes.pureGreen;
+            case (statesEnum.empty): return colorCodes.pureWhite;
+            case (statesEnum.wall): return colorCodes.pureBlack;
+            case (statesEnum.player): return colorCodes.pureRed;
+            case (statesEnum.target): return colorCodes.pureGreen;
             default: return colorCodes.purePurple;
         }
     }
@@ -75,7 +86,8 @@ class DisplayBoard {
      * @param {int} column 
      */
     updateTileColor(row, column) {
-        this.elements[row][column].style.color = stateToColor(this.board.getTileState(row, column));
+        //console.log(this.stateToColor(this.board.getTileState(row, column)));
+        this.elements[row][column].style["background-color"] = this.stateToColor(this.board.getTileState(row, column));
     }
 
     /**
@@ -94,3 +106,5 @@ class DisplayBoard {
         this.table.style.display = "none";
     }
 }
+
+export {DisplayBoard};

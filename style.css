@@ -1,4 +1,7 @@
-#main-section {
-    border: 3px solid black;
-    width: 90%;
+
+
+.tile {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
 }

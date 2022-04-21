@@ -1,5 +1,5 @@
-import { Board, Tile } from "../boardTemplate";
-import {statesEnum} from "../states"
+import { Board, Tile } from "../boardTemplate.js";
+import {statesEnum} from "../states.js"
 
 class BaseGameTile extends Tile {
     constructor(state, row, column) {
@@ -51,9 +51,9 @@ class BaseGameBoard extends Board {
         if (numPaths===undefined) numPaths = 3;
 
         // Generate start and target for player
-        start = {row : Math.floor(Math.floor(Math.random()*(rows-1))/2)+1,
+        let start = {row : Math.floor(Math.floor(Math.random()*(rows-1))/2)+1,
                  column : Math.floor(Math.floor(Math.random()*(columns-1))/2)+1};
-        end = {}
+        let end = {}
         do { // Until we are not getting end==start. Might define a different criteria later.
             end = {row : Math.floor(Math.floor(Math.random()*(rows-1))/2)+1,
                  column : Math.floor(Math.floor(Math.random()*(columns-1))/2)+1};
@@ -78,6 +78,7 @@ class BaseGameBoard extends Board {
      * Note: start.row==end.row==start.column==end.column==1 (mod 2).
      */
     generateMultipathMazeBoard(rows, columns, numPaths, start, end) {
+        // Fill with solid blocks
         for (let i=0;i<rows;i++) {
             for (let j=0;j<columns;j++) {
                 if (i%2==1 && j%2==1) {
@@ -132,3 +133,5 @@ class BaseGameBoard extends Board {
     }
 
 }
+
+export {BaseGameBoard};
