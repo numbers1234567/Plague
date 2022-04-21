@@ -111,11 +111,18 @@ class BaseGameBoard extends Board {
 
             // Holds also invalid neighbors
             let neighbors = [
-                {row : current.row-2, column : current.column},
-                {row : current.row+2, column : current.column},
                 {row : current.row, column : current.column-2},
-                {row : current.row, column : current.column+2}
+                {row : current.row, column : current.column+2},
+                {row : current.row-2, column : current.column},
+                {row : current.row+2, column : current.column}
             ];
+            // Randomize neighbors
+            for (let i = 3; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                let temp = neighbors[i];
+                neighbors[i] = neighbors[j];
+                neighbors[j] = temp;
+            }
             // Holds only valid neighbors
             let newNeighbors = [];
             let pushBack = false;
@@ -135,15 +142,12 @@ class BaseGameBoard extends Board {
                 newNeighbors.push(neighbors[i]);
             }
             // Time to break a random neighbor wall
-            for (let i=0;i<newNeighbors.length;i++) { 
-                // Choose neighbor cell randomly 
-                if (Math.random() < 1/(newNeighbors.length-i)) {
-                    let chosen = newNeighbors[i];
-                    stack.push(chosen);
-                    visited[chosen.row][chosen.column] = true;
-                    // Break wall between
-                    this.tiles[(chosen.row+current.row)/2][(chosen.column+current.column)/2].updateState(statesEnum.empty);
-                }
+            if (pushBack) {
+                let chosen = newNeighbors[0];
+                stack.push(chosen);
+                visited[chosen.row][chosen.column] = true;
+                // Break wall between
+                this.tiles[(chosen.row+current.row)/2][(chosen.column+current.column)/2].updateState(statesEnum.empty);
             }
         }
 
