@@ -50,7 +50,7 @@ class Tile {
      * @returns An array of all the out edges of the tile. Typically this would be neighbor tiles.
      */
     getOutEdges() {
-        edgesDeepCopy = [];
+        let edgesDeepCopy = [];
         for (let i=0;i<this.edges.length;i++) {
             edgesDeepCopy.push({row : this.edges[i].row, column : this.edges[i].column});
         }
