@@ -90,15 +90,22 @@ class DisplayBoard {
      */
     updateTileColor(row, column) {
         let newColor = this.stateToColor(this.board.getTileState(row, column));
-        this.dummy.style["background-color"] = newColor;
-
-        if(this.elements[row][column].style['background-color'] === this.dummy.style['background-color']) return;
-
-        console.log(this.elements[row][column].style["background-color"]);
-        this.elements[row][column].animate([{ transform: 'scale(1)' }, {transform: 'scale(0)'}], {duration : 1000, iterations : 1});
-        this.elements[row][column].style["background-color"] = newColor;
-        this.elements[row][column].animate([{ transform: 'scale(0)' }, {transform: 'scale(1)'}], {duration : 1000, iterations : 1});
         
+        // Determine if an animation is needed
+        this.dummy.style["background-color"] = newColor;
+        if(this.elements[row][column].style['background-color'] === this.dummy.style['background-color']) return;
+        
+        // Set color and perform a minimize-maximize animation
+        this.elements[row][column].animate([
+            { transform: 'scale(1)' }, {transform: 'scale(0)'}], 
+            {duration : 500, iterations : 1});
+
+        // Wait until the object is minimized to start the animation.
+        let controller = this;
+        setTimeout(function() {
+            controller.elements[row][column].style["background-color"] = newColor;
+            controller.elements[row][column].animate([{ transform: 'scale(0)' }, {transform: 'scale(1)'}], {duration : 500, iterations : 1});
+        }, 490);
     }
 
     /**
