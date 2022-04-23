@@ -69,11 +69,13 @@ class DisplayBoard {
 
     stateToColor(state) {
         switch (state) {
-            case (statesEnum.empty): return colorCodes.pureWhite;
-            case (statesEnum.wall): return colorCodes.pureBlack;
-            case (statesEnum.player): return colorCodes.pureRed;
-            case (statesEnum.target): return colorCodes.pureGreen;
-            default: return colorCodes.purePurple;
+            case (statesEnum.empty): return colorCodes.white;
+            case (statesEnum.wall): return colorCodes.black;
+            case (statesEnum.player): return colorCodes.red;
+            case (statesEnum.target): return colorCodes.green;
+            case (statesEnum.rat): return colorCodes.purple;
+            case (statesEnum.hole): return colorCodes.brown;
+            default: return undefined;
         }
     }
 

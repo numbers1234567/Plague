@@ -127,7 +127,23 @@ class Board {
      */
     updateState() {
         throw new Error("Must overwrite abstract method updateState of class Board.");
-        
+    }
+    
+    /**
+     * @returns the current position of the player
+     */
+    getPlayerPos() {
+        throw new Error("Must overwrite abstract method getPlayerPos of class Board.");
+    }
+    
+    /**
+     * Offsets the player in the board representation.
+     * 
+     * @param {Object} offset - of form {row : row offset, column : column offset}.
+     * @returns the new player position.
+     */
+    movePlayer(offset) {
+        throw new Error("Must overwrite abstract method movePlayer of class Board.");
     }
 }
 

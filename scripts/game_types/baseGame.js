@@ -7,7 +7,7 @@ import {Queue} from "../queue.js";
  * @param {list} arr - an array of objects to shuffle
  */
 function shuffleArray(arr) {
-    for (let i = 3; i > 0; i--) {
+    for (let i = arr.length-1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
         let temp = arr[i];
         arr[i] = arr[j];
@@ -41,6 +41,9 @@ class BaseGameTile extends Tile {
 class BaseGameBoard extends Board {
     constructor(rows, columns, initialState=undefined, numHoles=undefined, numEdges=undefined, numPaths=undefined) {
         super(rows, columns);
+        // Holes from which rats can leave
+        this.holes = [];
+        this.playerPos = undefined;
         if (initialState===undefined) {
             this.initRandom(rows, columns, numHoles=numHoles, numEdges=numEdges, numPaths=numPaths);
         }
@@ -60,21 +63,21 @@ class BaseGameBoard extends Board {
      */
     initRandom(rows, columns, numHoles=undefined, numEdges=undefined, numPaths=undefined) {
         // Arbitrary default settings
-        if (numHoles===undefined) numHoles = rows*columns/20;
+        if (numHoles===undefined) numHoles = rows*columns/80;
         if (numEdges===undefined) numEdges = numHoles*3;
-        if (numPaths===undefined) numPaths = 3;
+        if (numPaths===undefined) numPaths = 6;
 
         // Generate start and target for player
-        let start = {row : 1,
-                 column : 1};
-        let end = {}
-        do { // Until we are not getting end==start. Might define a different criteria later.
-            end = {row : rows-2,
-                 column : columns-2};
-        } while (end.row==start.row && end.column==start.column);
+        let start = {row : 1, column : 1};
+        let end = {row : rows-2, column : columns-2};
+
+        this.playerPos = start;
 
         // Generate maze for player
         this.generateMultipathMaze(rows, columns, numPaths, start, end);
+
+        // Set holes for rats.
+        this.chooseRandomHoles(rows, columns, numHoles);
     }
 
     /**
@@ -162,17 +165,37 @@ class BaseGameBoard extends Board {
                         startDistances[neighbor.row][neighbor.column] < targetDistances[neighbor.row][neighbor.column]) continue;    
                     if (startDistances[i][j] > targetDistances[i][j] && 
                         startDistances[neighbor.row][neighbor.column] > targetDistances[neighbor.row][neighbor.column]) continue;
-                    
+                            
                     // Neighbor and (i, j) are in different sets
                     let between = {row : (i+neighbor.row)/2, column : (j+neighbor.column)/2}
                     // But no wall :/
                     if (this.getTileState(between.row, between.column) != statesEnum.wall) continue; 
-
+                    
                     candidateWalls.push(between);
                 }
             }
         }
-
+        // I kind of want to remove dead-ends, to make it more confusing and difficult for a player
+        /*for (let i=1; i<rows-2;i+=2) {
+            for (let j=1; j<columns-2;j+=2) {
+                let directNeighbors = this.tiles[i][j].getOutEdges();
+                let numWalls = 0;
+                for (let k=0;k<directNeighbors.length;k++) {
+                    if (this.tiles[directNeighbors[k].row][directNeighbors[k].column].getState() == statesEnum.wall) numWalls++;
+                }
+        
+                if (numWalls!=3) continue;  // Dead end.
+                // Holds also invalid neighbors
+                let neighbors = [
+                    {row : current.row, column : current.column-2},
+                    {row : current.row, column : current.column+2},
+                    {row : current.row-2, column : current.column},
+                    {row : current.row+2, column : current.column}
+                ];
+                let newNeighbors = [];
+                
+            }
+        }*/
         // Choose walls to break
         shuffleArray(candidateWalls);
         for (let i=0;i<candidateWalls.length && i<numPaths-1;i++) {
@@ -262,6 +285,26 @@ class BaseGameBoard extends Board {
     }
 
     /**
+     * Sets random holes on the board
+     */
+    chooseRandomHoles(rows, columns, numHoles) {
+        let holesChoice = [];
+        for (let i=1;i<rows;i+=2) {
+            for (let j=1;j<columns;j+=2) {
+                if (this.tiles[i][j].getState() != statesEnum.empty) continue;
+                holesChoice.push({row : i, column : j});
+            }
+        }
+
+        shuffleArray(holesChoice);
+
+        for (let i=0;i<numHoles;i++) {
+            let cell = holesChoice[i];
+            this.tiles[cell.row][cell.column].updateState(statesEnum.hole);
+        }
+    }
+
+    /**
      * Copies initialState into the board.
      * @param {?} initialState - Initial state, in the format returned by saveState
      */
@@ -292,6 +335,10 @@ class BaseGameBoard extends Board {
             }
         }
         return etaCopy;
+    }
+
+    getPlayerPos() {
+
     }
 
     saveState() {
