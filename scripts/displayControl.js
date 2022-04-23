@@ -17,6 +17,8 @@ class DisplayBoard {
         this.table.color = "red";
         
         this.elements = [];
+
+        this.dummy = document.getElementById("dummy");
         // Create HTML elements and mappings from position to element.
         for (let i=0;i<this.nRows;i++) {
             // Create and place row
@@ -54,9 +56,10 @@ class DisplayBoard {
     * Updates the display given board. 
     */
    updateDisplay() {
+       let controller = this;
        for (let i=0;i<this.nRows;i++) {
             for (let j=0;j<this.nCols;j++) {
-                this.updateTileColor(i, j)
+                setTimeout(function() {controller.updateTileColor(i, j)}, 300);
             }
         }
     }
@@ -86,8 +89,16 @@ class DisplayBoard {
      * @param {int} column 
      */
     updateTileColor(row, column) {
-        //console.log(this.stateToColor(this.board.getTileState(row, column)));
-        this.elements[row][column].style["background-color"] = this.stateToColor(this.board.getTileState(row, column));
+        let newColor = this.stateToColor(this.board.getTileState(row, column));
+        this.dummy.style["background-color"] = newColor;
+
+        if(this.elements[row][column].style['background-color'] === this.dummy.style['background-color']) return;
+
+        console.log(this.elements[row][column].style["background-color"]);
+        this.elements[row][column].animate([{ transform: 'scale(1)' }, {transform: 'scale(0)'}], {duration : 1000, iterations : 1});
+        this.elements[row][column].style["background-color"] = newColor;
+        this.elements[row][column].animate([{ transform: 'scale(0)' }, {transform: 'scale(1)'}], {duration : 1000, iterations : 1});
+        
     }
 
     /**
