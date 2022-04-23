@@ -68,16 +68,13 @@ class BaseGameBoard extends Board {
         if (numEdges===undefined) numEdges = numHoles*3;
         if (numPaths===undefined) numPaths = 6;
 
-        // Generate start and target for player
         let start = {row : 1, column : 1};
         let end = {row : rows-2, column : columns-2};
 
         this.playerPos = start;
 
-        // Generate maze for player
         this.generateMultipathMaze(rows, columns, numPaths, start, end);
 
-        // Set holes for rats.
         this.chooseRandomHoles(rows, columns, numHoles);
     }
 
@@ -93,10 +90,8 @@ class BaseGameBoard extends Board {
         let queue = new Queue();
         
         let visited = [];
-        // Distance of each tile from start
         let distances = [];
 
-        // Initialize arrays. Why can't JavaScript just have normal arrays?!?!?!?!?
         for (let i=0;i<rows;i++) {
             visited.push([]);
             distances.push([]);
@@ -106,18 +101,14 @@ class BaseGameBoard extends Board {
             }
         }
 
-        // Initial state
         queue.push(start);
         visited[start.row][start.column] = true;
         distances[start.row][start.column] = 0;
         
-        // Determine distances from start
         while (!queue.isEmpty()) {
             let current = queue.pop();
-            // Holds also invalid neighbors
             let neighbors = this.tiles[current.row][current.column].getOutEdges();
             for (let i=0;i<4;i++) {
-                // Invalid neighbor
                 if (this.getTileState(neighbors[i].row, neighbors[i].column)==statesEnum.wall) continue;
                 if (neighbors[i].row <= 0 || neighbors[i].row >= rows-1) continue;
                 if (neighbors[i].column <= 0 || neighbors[i].column >= columns-1) continue;
@@ -135,10 +126,6 @@ class BaseGameBoard extends Board {
      * Sets up a random maze as the board. Modifies this.state.
      * This should be the only thing affecting walls.
      * 
-     * First generate a single-path maze, then removes walls in a specific way to 
-     *  create new paths. It removes walls if the wall is between a cell closer to 
-     *  the start and another cell closer to the target.
-     * 
      * @param {int} rows 
      * @param {int} columns 
      * @param {int} numPaths - number of unique paths from start to end
@@ -148,14 +135,13 @@ class BaseGameBoard extends Board {
      * Note: start.row==end.row==start.column==end.column==1 (mod 2).
      */
     generateMultipathMaze(rows, columns, numPaths, start, end) {
-        // First generate one with a single path
         this.generateDfsSinglePathMaze(rows, columns, start, end);
         
         let startDistances = this.bfsShortestPath(rows, columns, start);
         let targetDistances = this.bfsShortestPath(rows, columns, end);
         
-        // Determine which walls to break to create new paths
-        let candidateWalls = []; // List of walls to potentially break
+        // Walls to break
+        let candidateWalls = []; 
         for (let i=1; i<rows-2;i+=2) {
             for (let j=1; j<columns-2;j+=2) {
                 let neighbors = [{row : i+2, column : j}, {row : i, column : j+2}];
@@ -166,42 +152,20 @@ class BaseGameBoard extends Board {
                         startDistances[neighbor.row][neighbor.column] < targetDistances[neighbor.row][neighbor.column]) continue;    
                     if (startDistances[i][j] > targetDistances[i][j] && 
                         startDistances[neighbor.row][neighbor.column] > targetDistances[neighbor.row][neighbor.column]) continue;
-                            
-                    // Neighbor and (i, j) are in different sets
+                    
                     let between = {row : (i+neighbor.row)/2, column : (j+neighbor.column)/2}
-                    // But no wall :/
+                    
                     if (this.getTileState(between.row, between.column) != statesEnum.wall) continue; 
                     
                     candidateWalls.push(between);
                 }
             }
         }
-        // I kind of want to remove dead-ends, to make it more confusing and difficult for a player
-        /*for (let i=1; i<rows-2;i+=2) {
-            for (let j=1; j<columns-2;j+=2) {
-                let directNeighbors = this.tiles[i][j].getOutEdges();
-                let numWalls = 0;
-                for (let k=0;k<directNeighbors.length;k++) {
-                    if (this.tiles[directNeighbors[k].row][directNeighbors[k].column].getState() == statesEnum.wall) numWalls++;
-                }
         
-                if (numWalls!=3) continue;  // Dead end.
-                // Holds also invalid neighbors
-                let neighbors = [
-                    {row : current.row, column : current.column-2},
-                    {row : current.row, column : current.column+2},
-                    {row : current.row-2, column : current.column},
-                    {row : current.row+2, column : current.column}
-                ];
-                let newNeighbors = [];
-                
-            }
-        }*/
-        // Choose walls to break
         shuffleArray(candidateWalls);
         for (let i=0;i<candidateWalls.length && i<numPaths-1;i++) {
             let cell = candidateWalls[i];
-            // Break
+            // Break wall
             this.tiles[cell.row][cell.column].updateState(statesEnum.empty);
         }
     }
@@ -228,11 +192,10 @@ class BaseGameBoard extends Board {
             }
         }
         
-        // Set start and end
         this.tiles[start.row][start.column].updateState(statesEnum.player);
         this.tiles[end.row][end.column].updateState(statesEnum.target);
         
-        // Run a randomized depth-first search algorithm to generate maze
+        
         let visited = [];
         for (let i=0;i<rows;i++) {
             visited.push([]);
@@ -243,42 +206,38 @@ class BaseGameBoard extends Board {
         
         let stack = [{row : start.row, column : start.column}]
         visited[start.row][start.column] = true;
-        while (stack.length > 0) { // Until all cells visited
+        while (stack.length > 0) {
             let current = stack.pop();
             
-            // Holds also invalid neighbors
             let neighbors = [
                 {row : current.row, column : current.column-2},
                 {row : current.row, column : current.column+2},
                 {row : current.row-2, column : current.column},
                 {row : current.row+2, column : current.column}
             ];
-            // Randomize neighbors
+
             shuffleArray(neighbors);
-            // Holds only valid neighbors
-            let newNeighbors = [];
+            let candidateNeighbors = [];
             let pushBack = false;
             
-            // Process neighbor cells
             for (let i=0;i<4;i++) { 
-                // Invalid neighbor conditions
                 if (neighbors[i].row <= 0 || neighbors[i].row >= rows-1) continue;
                 if (neighbors[i].column <= 0 || neighbors[i].column >= columns-1) continue;
                 if (visited[neighbors[i].row][neighbors[i].column]) continue;
                 
-                // Has unvisited neighbors, keep current in stack.
+                // Keep current in stack.
                 if (!pushBack) {
                     pushBack = true;
                     stack.push(current);
                 }
-                newNeighbors.push(neighbors[i]);
+                candidateNeighbors.push(neighbors[i]);
             }
-            // Time to break a random neighbor wall
+
             if (pushBack) {
-                let chosen = newNeighbors[0];
+                let chosen = candidateNeighbors[0];
                 stack.push(chosen);
                 visited[chosen.row][chosen.column] = true;
-                // Break wall between
+                // Break wall
                 this.tiles[(chosen.row+current.row)/2][(chosen.column+current.column)/2].updateState(statesEnum.empty);
             }
         }
