@@ -44,6 +44,7 @@ class BaseGameBoard extends Board {
         // Holes from which rats can leave
         this.holes = [];
         this.playerPos = undefined;
+        this.playerAbove = statesEnum.empty; // Tile type the player is currently on
         if (initialState===undefined) {
             this.initRandom(rows, columns, numHoles=numHoles, numEdges=numEdges, numPaths=numPaths);
         }
@@ -338,7 +339,20 @@ class BaseGameBoard extends Board {
     }
 
     getPlayerPos() {
+        return {row : this.playerPos.row, column : this.playerPos.column};
+    }
 
+    movePlayer(offset) {
+        let pos = this.getPlayerPos();
+        let newPos = {row : offset.row + pos.row,
+                      column : offset.column + pos.column};
+        if (this.tiles[newPos.row][newPos.column].getState() == statesEnum.wall) return this.playerPos;
+
+        // Reset the previous player position and update the new player position.
+        this.tiles[pos.row][pos.column].updateState(this.playerAbove);
+        this.playerAbove = this.tiles[newPos.row][newPos.column].getState();
+        this.tiles[newPos.row][newPos.column].updateState(statesEnum.player);
+        this.playerPos = newPos;
     }
 
     saveState() {
