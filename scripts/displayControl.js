@@ -7,29 +7,26 @@ class DisplayBoard {
      * @param {Node} parent - HTML element which is the game container
      */
     constructor(document, parent, board) {
-        this.board = board; // We work under the assumption that this is not modified.
+        this.board = board;
         this.nRows = board.nRows;
         this.nCols = board.nCols;
         
         this.table = document.createElement("table");
         parent.appendChild(this.table);
-        //this.table.width="100%";
+
         this.table.color = "red";
         
+        // elements[i, j] -> corresponding HTML element
         this.elements = [];
 
         this.dummy = document.getElementById("dummy");
-        // Create HTML elements and mappings from position to element.
         for (let i=0;i<this.nRows;i++) {
-            // Create and place row
             const row = document.createElement("tr");
-            //row.width=this.table.width;
             this.table.appendChild(row);
 
             this.elements.push([]);
             
             for (let j=0;j<this.nCols;j++) {
-                // Create and place cell
                 let cell = document.createElement("td");
                 row.appendChild(cell);
 
@@ -52,23 +49,15 @@ class DisplayBoard {
     * 
     */
    
-   /**
-    * Updates the display given board. 
-    */
    updateDisplay() {
        let controller = this;
        for (let i=0;i<this.nRows;i++) {
             for (let j=0;j<this.nCols;j++) {
+                // Animates
                 setTimeout(function() {controller.updateTileColor(i, j)}, 300);
             }
         }
     }
-
-    /**
-     * 
-     * @param {int} state - state of a tile
-     * @returns the color associated with the given tile state
-     */
 
     stateToColor(state) {
         switch (state) {
@@ -83,24 +72,21 @@ class DisplayBoard {
     }
 
     /**
-     * Update the visuals of the tile with the given row and column.
-     * Based off values set in the board property
+     * Update visual based on board state
+     * Animates
      * @param {int} row 
      * @param {int} column 
      */
     updateTileColor(row, column) {
         let newColor = this.stateToColor(this.board.getTileState(row, column));
         
-        // Determine if an animation is needed
         this.dummy.style["background-color"] = newColor;
         if(this.elements[row][column].style['background-color'] === this.dummy.style['background-color']) return;
         
-        // Set color and perform a minimize-maximize animation
         this.elements[row][column].animate([
             { transform: 'scale(1)' }, {transform: 'scale(0)'}], 
             {duration : 500, iterations : 1});
 
-        // Wait until the object is minimized to start the animation.
         let controller = this;
         setTimeout(function() {
             controller.elements[row][column].style["background-color"] = newColor;
@@ -109,16 +95,16 @@ class DisplayBoard {
     }
 
     /**
-     * Show the board. Fairly self-explanatory.
-     * Actually unhides the HTML element.
+     * Show the board.
+     * Unhides the HTML element.
      */
     show() {
         this.table.style.display = "block";
     }
     
     /**
-     * Hide the board. Fairly self-explanatory.
-     * Actually hides the HTML element.
+     * Hide the board. 
+     * Hides the HTML element.
      */
     hide() {
         this.table.style.display = "none";
