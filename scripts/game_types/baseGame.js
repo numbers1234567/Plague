@@ -1,6 +1,12 @@
 import { Board, Tile } from "../boardTemplate.js";
 import {statesEnum} from "../states.js";
 import {Queue} from "../queue.js";
+import { disjointSet } from "../disjointSet.js";
+import { PriorityQueue } from "../priorityQueue.js";
+
+function compareDistances(a, b) {
+    return a.distance-b.distance
+};
 
 /**
  * Shuffles the given array randomly
@@ -39,17 +45,19 @@ class BaseGameTile extends Tile {
  * Define the base game.
  */
 class BaseGameBoard extends Board {
-    constructor(rows, columns, initialState=undefined, numHoles=undefined, numEdges=undefined, numPaths=undefined) {
+    constructor(rows, columns, initialState=undefined, numHoles=undefined, numPaths=undefined) {
         super(rows, columns);
         // Holes from which rats can leave
         this.holes = [];
         this.playerPos = undefined;
         this.playerAbove = statesEnum.empty; // Tile type the player is currently on
+        
+        this.steps = 0;
         if (initialState===undefined) {
-            this.initRandom(rows, columns, numHoles=numHoles, numEdges=numEdges, numPaths=numPaths);
+            this.initRandom(rows, columns, numHoles=numHoles, numPaths=numPaths);
         }
         else {
-            if (numHoles!==undefined || (numEdges!==undefined || numPaths!==undefined)) {
+            if (numHoles!==undefined || numPaths!==undefined) {
                 throw new Error("Invalid inputs. Initial state is defined, but given extra parameters");
             }
         }
@@ -62,10 +70,9 @@ class BaseGameBoard extends Board {
      * @param {int} numHoles - How many holes rats come from
      * @param {int} numEdges - How many edges between holes
      */
-    initRandom(rows, columns, numHoles=undefined, numEdges=undefined, numPaths=undefined) {
+    initRandom(rows, columns, numHoles=undefined, numPaths=undefined) {
         // Arbitrary default settings
         if (numHoles===undefined) numHoles = rows*columns/80;
-        if (numEdges===undefined) numEdges = numHoles*3;
         if (numPaths===undefined) numPaths = 6;
 
         let start = {row : 1, column : 1};
@@ -74,8 +81,9 @@ class BaseGameBoard extends Board {
         this.playerPos = start;
 
         this.generateMultipathMaze(rows, columns, numPaths, start, end);
-
         this.chooseRandomHoles(rows, columns, numHoles);
+        this.setMinSpanningTreeHoles();
+        this.calcETAMatrix([{row : 1, column : columns-2}, {row : rows-2, column : 1}]);
     }
 
     /**
@@ -261,6 +269,7 @@ class BaseGameBoard extends Board {
         for (let i=0;i<numHoles;i++) {
             let cell = holesChoice[i];
             this.tiles[cell.row][cell.column].updateState(statesEnum.hole);
+            this.holes.push(cell);
         }
     }
 
@@ -278,7 +287,86 @@ class BaseGameBoard extends Board {
      * @param {Array} starts - An array of objects of form {row : row, column : column}
      */
     calcETAMatrix(starts) {
+        // Dijkstra's algorithm
+        let dist = [];
+        let visited = [];
 
+        let rows = this.tiles.length;
+        let columns = this.tiles[0].length;
+
+        for (let i=0;i<rows;i++) {
+            dist.push([]);
+            visited.push([]);
+            for (let j=0;j<columns;j++) {
+                dist[i].push(Number.MAX_SAFE_INTEGER);
+                visited[i].push(false);
+            }
+        }
+        let pq = new PriorityQueue(compareDistances);
+
+        for (let i=0;i<starts.length;i++) dist[starts[i].row][starts[i].column] = 0;
+        
+        for (let i=0;i<rows;i++) {
+            for (let j=0;j<columns;j++) {
+                if (this.tiles[i][j].getState() == statesEnum.wall) continue;
+                pq.push({row : i, column : j, distance : dist[i][j]});
+            }
+        }
+
+        while (!pq.isEmpty()) {
+            let current = pq.pop();
+            
+            if (dist[current.row][current.column] < current.distance) continue;
+            
+            visited[current] = true;
+            let neighbors = this.tiles[current.row][current.column].getOutEdges();
+            for (let i=0;i<neighbors.length;i++) {
+                let neighbor = neighbors[i];
+                if (visited[neighbor.row][neighbor.column] ||
+                    this.tiles[neighbor.row][neighbor.column].getState()==statesEnum.wall) continue;
+
+                let dx = current.column - neighbor.column;
+                let dy = current.row - neighbor.row;
+                let newDistance = current.distance + Math.round(Math.sqrt(dx*dx+dy*dy));
+
+                if (newDistance < dist[neighbor.row][neighbor.column]) {
+                    dist[neighbor.row][neighbor.column] = newDistance;
+                    pq.push({row : neighbor.row, column : neighbor.column, distance : newDistance});
+                }
+            }
+        }
+
+        this.etaMatrix = dist;
+    }
+    
+    /**
+     * Sets tile edges on minimum spanning tree on holes based on euclidean distance.
+     */ 
+    setMinSpanningTreeHoles() {
+        let edges = [];
+        for (let i=0;i<this.holes.length;i++) {
+            for (let j=0;j<i;j++) {
+                if (i==j) continue;
+                let dy = this.holes[i].row - this.holes[j].row;
+                let dx = this.holes[i].column - this.holes[j].column;
+                edges.push({from : i, to : j, distance : Math.round(Math.sqrt(dx*dx+dy*dy))});
+            }
+        }
+        
+        // kruskal's
+        let dsu = new disjointSet(this.holes.length);
+        
+        edges.sort((a, b) => (a.distance-b.distance));
+        for (let i=0;i<edges.length;i++) {
+            let edge = edges[i];
+            if (dsu.find(edge.from)==dsu.find(edge.to)) continue;
+            dsu.union(edge.from, edge.to);
+
+            let from = this.holes[edge.from];
+            let to = this.holes[edge.to]
+            this.tiles[from.row][from.column].addEdge(to);
+            this.tiles[to.row][to.column].addEdge(from);
+        }
     }
 
     /**
@@ -319,7 +407,14 @@ class BaseGameBoard extends Board {
     }
 
     updateState() {
-
+        this.steps++;
+        for (let i=0;i<this.tiles.length;i++) {
+            for (let j=0;j<this.tiles[i].length;j++) {
+                if (this.etaMatrix[i][j] < this.steps) {
+                    this.tiles[i][j].updateState(statesEnum.rat);
+                }
+            }
+        }
     }
 
 }

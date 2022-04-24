@@ -17,18 +17,22 @@ function startGame() {
 
     leftButton.onclick= function() {
         board.movePlayer({row : 0, column : -1});
+        board.updateState();
         displayController.updateDisplay();
     };
     rightButton.onclick= function() {
         board.movePlayer({row : 0, column : 1});
+        board.updateState();
         displayController.updateDisplay();
     };
     upButton.onclick= function() {
         board.movePlayer({row : -1, column : 0});
+        board.updateState();
         displayController.updateDisplay();
     };
     downButton.onclick= function() {
         board.movePlayer({row : 1, column : 0});
+        board.updateState();
         displayController.updateDisplay();
     };
 }
