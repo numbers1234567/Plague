@@ -33,6 +33,10 @@ class DisplayBoard {
                 let square = document.createElement("div");
                 cell.appendChild(square);
                 square.classList.add("tile");
+                square.style['width'] = "15px";
+                square.style['height'] = "15px";
+                square.style['border-radius'] = "3px";
+
 
                 this.elements[i].push(square);
             }
@@ -53,8 +57,7 @@ class DisplayBoard {
        let controller = this;
        for (let i=0;i<this.nRows;i++) {
             for (let j=0;j<this.nCols;j++) {
-                // Animates
-                setTimeout(function() {controller.updateTileColor(i, j)}, 300);
+                controller.updateTileColor(i, j);
             }
         }
     }

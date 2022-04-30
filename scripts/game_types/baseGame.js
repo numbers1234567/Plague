@@ -304,7 +304,10 @@ class BaseGameBoard extends Board {
         }
         let pq = new PriorityQueue(compareDistances);
 
-        for (let i=0;i<starts.length;i++) dist[starts[i].row][starts[i].column] = 0;
+        for (let i=0;i<starts.length;i++) {
+            dist[starts[i].row][starts[i].column] = 0;
+            this.tiles[starts[i].row][starts[i].column].updateState(statesEnum.rat);
+        }
         
         for (let i=0;i<rows;i++) {
             for (let j=0;j<columns;j++) {
@@ -375,7 +378,7 @@ class BaseGameBoard extends Board {
      * 
      */
     getETAMatrix() {
-        etaCopy = [];
+        let etaCopy = [];
         for (let i=0;i<this.etaMatrix.length;i++) {
             etaCopy.push([]);
             for (let j=0;j<this.etaMatrix[i].length;j++) {
@@ -407,14 +410,14 @@ class BaseGameBoard extends Board {
     }
 
     updateState() {
-        this.steps++;
         for (let i=0;i<this.tiles.length;i++) {
             for (let j=0;j<this.tiles[i].length;j++) {
-                if (this.etaMatrix[i][j] < this.steps) {
+                if (this.etaMatrix[i][j] <= this.steps) {
                     this.tiles[i][j].updateState(statesEnum.rat);
                 }
             }
         }
+        this.steps++;
     }
 
 }

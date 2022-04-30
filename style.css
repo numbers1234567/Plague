@@ -1,7 +1,9 @@
 
 
-.tile {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
+.button {
+    width : 60px;
+    height: 30px;
+    border: 3px solid black;
+    background-color: red;
+    cursor: pointer;
 }

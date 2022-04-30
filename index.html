@@ -15,27 +15,41 @@
             <!--Inner stuff controlled by JavaScript. Easier to customize-->
         </div>
         <div id="controller">
-            <button id="start-button">
+            <div id="start-button" class="button">
                 start
-            </button>
-            <button id="left-button">
-                left
-            </button>
-            <button id="right-button">
-                right
-            </button>
-            <button id="up-button">
-                up
-            </button>
-            <button id="down-button">
-                down
-            </button>
+            </div>
+            <table>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <div id="up-button" class="button">
+                            up
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <div id="left-button" class="button">
+                            left
+                        </div>
+                    </td>
+                    <td>
+                        <div id="down-button" class="button">
+                            down
+                        </div>
+                    </td>
+                    <td>
+                        <div id="right-button" class="button">
+                            right
+                        </div>
+                        
+                    </td>
+                </tr>
+            </table>
         </div>
 
-        <script type="module" src="scripts/boardTemplate.js"></script>
-        <script type="module" src="scripts/displayControl.js"></script>
         <script type="module" src="scripts/main.js"></script>
-        <script type="module" src="scripts/states.js"></script>
-        <script type="module" src="scripts/game_types/baseGame.js"></script>
     </body>
 </html>
