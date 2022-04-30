@@ -83,7 +83,41 @@ class BaseGameBoard extends Board {
         this.generateMultipathMaze(rows, columns, numPaths, start, end);
         this.chooseRandomHoles(rows, columns, numHoles);
         this.setMinSpanningTreeHoles();
+        this.removeDeadEnds();
         this.calcETAMatrix([{row : 1, column : columns-2}, {row : rows-2, column : 1}]);
+    }
+
+    /**
+     * Modify this.tiles to remove dead-ends
+     */
+    removeDeadEnds() {
+        for (let i=1;i<this.nRows;i+=2) {
+            for (let j=1;j<this.nCols;j+=2) {
+                let neighbors = [
+                    {row : i+2, column: j},
+                    {row : i-2, column: j},
+                    {row : i, column: j+2},
+                    {row : i, column: j-2}
+                ];
+                
+                let candidateWalls = [];
+                let numWalls = 0;
+                for (let k=0;k<4;k++) {
+                    let neighbor = neighbors[k];
+                    let inbetween = {row : (i+neighbor.row)/2,
+                                    column : (j+neighbor.column)/2};
+                    if (this.getTileState(inbetween.row, inbetween.column)==statesEnum.wall) numWalls++;
+                    // Border wall
+                    if ((neighbor.row < 0 || neighbor.row >= this.nRows) ||
+                    (neighbor.column < 0 || neighbor.column >= this.nCols)) continue;
+
+                    if (this.getTileState(inbetween.row, inbetween.column)==statesEnum.wall) candidateWalls.push(inbetween);
+                }
+                if (numWalls<3) continue;
+                let chosen = candidateWalls[Math.floor(Math.random()*candidateWalls.length)];
+                this.tiles[chosen.row][chosen.column].updateState(statesEnum.empty);
+            }
+        }
     }
 
     /**
