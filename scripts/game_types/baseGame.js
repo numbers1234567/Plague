@@ -51,7 +51,7 @@ class BaseGameBoard extends Board {
         this.holes = [];
         this.playerPos = undefined;
         this.playerAbove = statesEnum.empty; // Tile type the player is currently on
-        
+        this.lost = false;
         this.steps = 0;
         if (initialState===undefined) {
             this.initRandom(rows, columns, numHoles=numHoles, numPaths=numPaths);
@@ -79,6 +79,8 @@ class BaseGameBoard extends Board {
         let end = {row : rows-2, column : columns-2};
 
         this.playerPos = start;
+
+        this.numTarget = 1;
 
         this.generateMultipathMaze(rows, columns, numPaths, start, end);
         this.chooseRandomHoles(rows, columns, numHoles);
@@ -437,6 +439,13 @@ class BaseGameBoard extends Board {
         this.playerAbove = this.tiles[newPos.row][newPos.column].getState();
         this.tiles[newPos.row][newPos.column].updateState(statesEnum.player);
         this.playerPos = newPos;
+
+        // 1 less target
+        if (this.playerAbove==statesEnum.target) {
+            this.numTarget--;
+            this.playerAbove=statesEnum.empty;
+        }
+        if (this.etaMatrix[newPos.row][newPos.column] <= this.steps) this.lost = true;
     }
 
     saveState() {
@@ -454,6 +463,9 @@ class BaseGameBoard extends Board {
         this.steps++;
     }
 
+    stateWon() {
+        return this.numTarget==0;
+    }
 }
 
 export {BaseGameBoard};

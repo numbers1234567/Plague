@@ -43,11 +43,19 @@ function setButtons(playerSpeed) {
     };
 }
 
+/**
+ * Stuff like player speed and general difficulty settings
+ */
+function applySettings() {
+    
+}
+
 function startGame() {
     board = new BaseGameBoard(31, 51);
     displayController = new DisplayBoard(document, gameContainer, board);
     displayController.updateDisplay();
     board.updateState();
+    let playerSpeed = findMinSpeed(board);
     setButtons(findMinSpeed(board));
 
 }

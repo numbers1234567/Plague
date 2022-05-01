@@ -58,6 +58,9 @@ class Tile {
     }
 }
 
+/**
+ * Works under the assumption that target(s) and a single player exist on the board
+ */
 class Board {
     
     /**
@@ -144,6 +147,17 @@ class Board {
      */
     movePlayer(offset) {
         throw new Error("Must overwrite abstract method movePlayer of class Board.");
+    }
+    
+    /**
+     * Defines conditions for determining if the current state is already won.
+     */
+    stateWon() {
+        throw new Error("Must overwrite abstract method stateWon of class Board.");
+    }
+    
+    stateLost() {
+        throw new Error("Must overwrite abstract method stateLost of class Board.");
     }
 }
 

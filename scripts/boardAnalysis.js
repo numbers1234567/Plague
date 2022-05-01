@@ -64,18 +64,19 @@ function isPossible(board, playerSpeed) {
             let neighborState = board.getTileState(neighbor.row, neighbor.column)
             // It's a wall or rats reach too soon
             if (neighborState==statesEnum.wall || 
-                etaMatrix[neighbor.row][neighbor.column] <= dist[current.row][current.column]+moveWeight) continue;
+                etaMatrix[neighbor.row][neighbor.column] < dist[current.row][current.column]+moveWeight) continue;
             q.push(neighbor);
             visited[neighbor.row][neighbor.column] = true;
             dist[neighbor.row][neighbor.column] = dist[current.row][current.column] + moveWeight;
         }
     }
-    let targetPos = undefined;
+    let won = true;
     for (let i=0;i<board.nRows;i++) {
         for (let j=0;j<board.nCols;j++) {
-            if (board.getTileState(i,j)==statesEnum.target) return visited[i][j];
+            if (board.getTileState(i,j)==statesEnum.target) won = won&&visited[i][j];
         } 
     }
+    return won;
 }
 
 export {findMinSpeed};
