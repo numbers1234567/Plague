@@ -1,8 +1,8 @@
 import { Board, Tile } from "../boardTemplate.js";
 import {statesEnum} from "../states.js";
-import {Queue} from "../queue.js";
-import { disjointSet } from "../disjointSet.js";
-import { PriorityQueue } from "../priorityQueue.js";
+import {Queue} from "../aux_structures/queue.js";
+import { disjointSet } from "../aux_structures/disjointSet.js";
+import { PriorityQueue } from "../aux_structures/priorityQueue.js";
 
 function compareDistances(a, b) {
     return a.distance-b.distance
@@ -465,6 +465,10 @@ class BaseGameBoard extends Board {
 
     stateWon() {
         return this.numTarget==0;
+    }
+
+    stateLost() {
+        return this.lost;
     }
 }
 

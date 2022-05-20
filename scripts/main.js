@@ -1,5 +1,5 @@
 import {DisplayBoard} from "./displayControl.js";
-import {BaseGameBoard} from "./game_types/baseGame.js";
+import {BaseGameBoard} from "./state/game_types/baseGame.js";
 import {findMinSpeed} from "./boardAnalysis.js";
 
 
@@ -13,6 +13,14 @@ let rightButton = document.getElementById("right-button");
 
 let board = undefined;
 let displayController = undefined
+
+function onLose() {
+    console.log("lose");
+}
+
+function onWin() {
+    console.log("win");
+}
 
 /**
  * Sets up the button behavior for the game

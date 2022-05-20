@@ -1,4 +1,4 @@
-import {colorCodes, statesEnum} from "./states.js";
+import {colorCodes, statesEnum} from "./state/states.js";
 
 class DisplayBoard {
     

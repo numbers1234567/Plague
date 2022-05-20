@@ -1,5 +1,5 @@
-import {Queue} from "./queue.js";
-import {statesEnum} from "./states.js";
+import {Queue} from "./state/aux_structures/queue.js";
+import {statesEnum} from "./state/states.js";
 
 /**
  * Functions which can calculate certain useful properties given a board state.
@@ -25,6 +25,8 @@ function findMinSpeed(board) {
     }
     return lo;
 }
+
+//function possibleLocation(board, playerSpeed)
 
 /**
  * 
