@@ -1,6 +1,7 @@
 import {DisplayBoard} from "./displayControl.js";
 import {BaseGameBoard} from "./state/game_types/baseGame.js";
 import {findMinSpeed} from "./boardAnalysis.js";
+import { getBaseGameSettings } from "./settings.js";
 
 
 let gameContainer = document.getElementById("main-section");
@@ -58,8 +59,10 @@ function applySettings() {
     
 }
 
-function startGame() {
-    board = new BaseGameBoard(31, 51);
+function baseGame() {
+    let settings = getBaseGameSettings();
+
+    board = new BaseGameBoard(settings.rows, settings.columns, undefined, settings.numHoles, undefined);
     displayController = new DisplayBoard(document, gameContainer, board);
     displayController.updateDisplay();
     board.updateState();
@@ -68,4 +71,4 @@ function startGame() {
 
 }
 
-startButton.onclick=startGame;
+startButton.onclick=baseGame;
