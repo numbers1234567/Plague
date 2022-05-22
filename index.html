@@ -6,43 +6,67 @@
     </head>
     <body>
         <div id="dummy" style="display:none;"></div>
-        <!--Header section which gives all the information-->
         <div id="header-section">
-            
+            <div class="settings-row">
+                <div class="dropdown setting" id="game-choice">
+                    <p>Game Type</p>
+                    <div class="dropdown-content">
+                        <div class="button">Base Game</div>
+                    </div>
+                </div>
+                <div id="base-game-settings" class="selected setting">
+                    <div class="setting">
+                        <p>Horizontal bias: </p>
+                        <input type="range" class="setting" min="20" max="80" value="50" id="base-game-bias">
+                    </div>
+                    <div class="setting">
+                        <p>Number of holes: </p>
+                        <input type="text" value="19" id="base-game-holes">
+                    </div>
+                    <div class="setting">
+                        <p>Number of rows: </p>
+                        <input type="text" value="31" id="base-game-rows">
+                    </div>
+                    <div class="setting">
+                        <p>Number of columns: </p>
+                        <input type="text" value="51" id="base-game-columns">
+                    </div>
+                </div>
+            </div>
         </div>
         <!--Main section with all the action and moving parts-->
         <div id="main-section">
             <!--Inner stuff controlled by JavaScript. Easier to customize-->
         </div>
         <div id="controller">
-            <div id="start-button" class="button">
-                start
+            <div id="start-button" class="button control-input">
+                Start
             </div>
             <table>
                 <tr>
                     <td></td>
                     <td></td>
                     <td>
-                        <div id="up-button" class="button">
-                            up
+                        <div id="up-button" class="button control-input">
+                            Up
                         </div>
                     </td>
                 </tr>
                 <tr>
                     <td></td>
                     <td>
-                        <div id="left-button" class="button">
-                            left
+                        <div id="left-button" class="button control-input">
+                            Left
                         </div>
                     </td>
                     <td>
-                        <div id="down-button" class="button">
-                            down
+                        <div id="down-button" class="button control-input">
+                            Down
                         </div>
                     </td>
                     <td>
-                        <div id="right-button" class="button">
-                            right
+                        <div id="right-button" class="button control-input">
+                            Right
                         </div>
                         
                     </td>
