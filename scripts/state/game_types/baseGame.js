@@ -45,7 +45,7 @@ class BaseGameTile extends Tile {
  * Define the base game.
  */
 class BaseGameBoard extends Board {
-    constructor(rows, columns, initialState=undefined, numHoles=undefined, numPaths=undefined) {
+    constructor(rows, columns, initialState=undefined, numHoles=undefined, numPaths=undefined, bias=undefined) {
         super(rows, columns);
         // Holes from which rats can leave
         this.holes = [];
@@ -54,7 +54,7 @@ class BaseGameBoard extends Board {
         this.lost = false;
         this.steps = 0;
         if (initialState===undefined) {
-            this.initRandom(rows, columns, numHoles=numHoles, numPaths=numPaths);
+            this.initRandom(rows, columns, numHoles, numPaths, bias);
         }
         else {
             if (numHoles!==undefined || numPaths!==undefined) {
@@ -70,7 +70,7 @@ class BaseGameBoard extends Board {
      * @param {int} numHoles - How many holes rats come from
      * @param {int} numEdges - How many edges between holes
      */
-    initRandom(rows, columns, numHoles=undefined, numPaths=undefined) {
+    initRandom(rows, columns, numHoles=undefined, numPaths=undefined, bias=undefined) {
         // Arbitrary default settings
         if (numHoles===undefined) numHoles = rows*columns/80;
         if (numPaths===undefined) numPaths = 6;
@@ -82,11 +82,27 @@ class BaseGameBoard extends Board {
 
         this.numTarget = 1;
 
-        this.generateMultipathMaze(rows, columns, numPaths, start, end);
+        this.fillBlocks();
+        
+        this.generateMultipathMaze(rows, columns, numPaths, start, end, bias);
         this.chooseRandomHoles(rows, columns, numHoles);
         this.setMinSpanningTreeHoles();
         this.removeDeadEnds();
         this.calcETAMatrix([{row : 1, column : columns-2}, {row : rows-2, column : 1}]);
+    }
+    
+    fillBlocks() {
+        // Initial state - complete solid
+        for (let i=0;i<this.nRows;i++) {
+            for (let j=0;j<this.nCols;j++) {
+                if (i%2==1 && j%2==1) {
+                    this.tiles[i][j] = new BaseGameTile(statesEnum.empty, i, j);
+                }
+                else {
+                    this.tiles[i][j] = new BaseGameTile(statesEnum.wall, i, j);
+                }
+            }
+        }
     }
 
     /**
@@ -178,8 +194,8 @@ class BaseGameBoard extends Board {
      * 
      * Note: start.row==end.row==start.column==end.column==1 (mod 2).
      */
-    generateMultipathMaze(rows, columns, numPaths, start, end) {
-        this.generateDfsSinglePathMaze(rows, columns, start, end);
+    generateMultipathMaze(rows, columns, numPaths, start, end, bias) {
+        this.generateDfsSinglePathMaze(rows, columns, start, end, bias);
         
         let startDistances = this.bfsShortestPath(rows, columns, start);
         let targetDistances = this.bfsShortestPath(rows, columns, end);
@@ -223,23 +239,12 @@ class BaseGameBoard extends Board {
      * @param {int} start 
      * @param {int} end 
      */
-    generateDfsSinglePathMaze(rows, columns, start, end) {
-        // Fill with solid blocks
-        for (let i=0;i<rows;i++) {
-            for (let j=0;j<columns;j++) {
-                if (i%2==1 && j%2==1) {
-                    this.tiles[i][j] = new BaseGameTile(statesEnum.empty, i, j);
-                }
-                else {
-                    this.tiles[i][j] = new BaseGameTile(statesEnum.wall, i, j);
-                }
-            }
-        }
-        
+    generateDfsSinglePathMaze(rows, columns, start, end, bias) {
         this.tiles[start.row][start.column].updateState(statesEnum.player);
         this.tiles[end.row][end.column].updateState(statesEnum.target);
         
         
+        // Random dfs maze generation
         let visited = [];
         for (let i=0;i<rows;i++) {
             visited.push([]);
@@ -253,32 +258,39 @@ class BaseGameBoard extends Board {
         while (stack.length > 0) {
             let current = stack.pop();
             
+            // Separation for horizontal/vertical bias
             let neighbors = [
-                {row : current.row, column : current.column-2},
-                {row : current.row, column : current.column+2},
-                {row : current.row-2, column : current.column},
-                {row : current.row+2, column : current.column}
+                [{row : current.row, column : current.column-2}, 
+                {row : current.row, column : current.column+2}],
+                [{row : current.row-2, column : current.column},
+                {row : current.row+2, column : current.column}]
             ];
 
-            shuffleArray(neighbors);
-            let candidateNeighbors = [];
+            let candidateNeighbors = [[],[]];
             let pushBack = false;
             
-            for (let i=0;i<4;i++) { 
-                if (neighbors[i].row <= 0 || neighbors[i].row >= rows-1) continue;
-                if (neighbors[i].column <= 0 || neighbors[i].column >= columns-1) continue;
-                if (visited[neighbors[i].row][neighbors[i].column]) continue;
+            for (let i=0;i<4;i++) {
+                let neighbor = neighbors[Math.floor(i/2)][i%2];
+                if (neighbor.row <= 0 || neighbor.row >= rows-1) continue;
+                if (neighbor.column <= 0 || neighbor.column >= columns-1) continue;
+                if (visited[neighbor.row][neighbor.column]) continue;
                 
                 // Keep current in stack.
                 if (!pushBack) {
                     pushBack = true;
                     stack.push(current);
                 }
-                candidateNeighbors.push(neighbors[i]);
+                candidateNeighbors[Math.floor(i/2)].push(neighbor);
             }
-
+            
             if (pushBack) {
-                let chosen = candidateNeighbors[0];
+                // Choose horizontal or vertical
+                if ((Math.random() < bias && candidateNeighbors[0].length != 0) || candidateNeighbors[1].length==0) 
+                    candidateNeighbors = candidateNeighbors[0];
+                else 
+                    candidateNeighbors = candidateNeighbors[1];
+                let chosen = candidateNeighbors[Math.floor(Math.random()*candidateNeighbors.length)];
+
                 stack.push(chosen);
                 visited[chosen.row][chosen.column] = true;
                 // Break wall
@@ -453,6 +465,7 @@ class BaseGameBoard extends Board {
     }
 
     updateState() {
+        this.steps++;
         for (let i=0;i<this.tiles.length;i++) {
             for (let j=0;j<this.tiles[i].length;j++) {
                 if (this.etaMatrix[i][j] <= this.steps) {
@@ -460,7 +473,6 @@ class BaseGameBoard extends Board {
                 }
             }
         }
-        this.steps++;
     }
 
     stateWon() {
