@@ -30,26 +30,16 @@ function onWin() {
 function setButtons(playerSpeed) {
     let speed = playerSpeed;
     let steps=0;
-    leftButton.onclick= function() {
-        board.movePlayer({row : 0, column : -1});
-        if (++steps%speed==0) board.updateState();
+
+    function updateAll(playerOffset) {
+        board.movePlayer(playerOffset);
+        if ((++steps)%speed==0) board.updateState();
         displayController.updateDisplay();
-    };
-    rightButton.onclick= function() {
-        board.movePlayer({row : 0, column : 1});
-        if (++steps%speed==0) board.updateState();
-        displayController.updateDisplay();
-    };
-    upButton.onclick= function() {
-        board.movePlayer({row : -1, column : 0});
-        if (++steps%speed==0) board.updateState();
-        displayController.updateDisplay();
-    };
-    downButton.onclick= function() {
-        board.movePlayer({row : 1, column : 0});
-        if (++steps%speed==0) board.updateState();
-        displayController.updateDisplay();
-    };
+    }
+    leftButton.onclick= function() { updateAll({row : 0, column : -1}) };
+    rightButton.onclick= function() { updateAll({row : 0, column : 1}) };
+    upButton.onclick= function() { updateAll({row : -1, column : 0}) };
+    downButton.onclick= function() { updateAll({row : 1, column : 0}) };
 }
 
 /**
@@ -62,12 +52,13 @@ function applySettings() {
 function baseGame() {
     let settings = getBaseGameSettings();
 
-    board = new BaseGameBoard(settings.rows, settings.columns, undefined, settings.numHoles, undefined);
+    board = new BaseGameBoard(settings.rows, settings.columns, undefined, settings.numHoles, undefined, settings.bias);
     displayController = new DisplayBoard(document, gameContainer, board);
     displayController.updateDisplay();
-    board.updateState();
+
     let playerSpeed = findMinSpeed(board);
-    setButtons(findMinSpeed(board));
+    playerSpeed=2;
+    setButtons(playerSpeed);
 
 }
 
