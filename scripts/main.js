@@ -57,9 +57,7 @@ function baseGame() {
     displayController.updateDisplay();
 
     let playerSpeed = findMinSpeed(board);
-    playerSpeed=2;
     setButtons(playerSpeed);
-
 }
 
 startButton.onclick=baseGame;
