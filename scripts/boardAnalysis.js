@@ -19,7 +19,6 @@ function findMinSpeed(board) {
     let hi=nRows*nCols;
     while (lo < hi) {
         let mid = Math.floor((hi+lo)/2);
-        console.log(isPossible(board, mid));
         if (isPossible(board, mid)) hi=mid;
         else lo=mid+1;
     }
