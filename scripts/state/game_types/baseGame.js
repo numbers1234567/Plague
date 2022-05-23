@@ -3,6 +3,7 @@ import {statesEnum} from "../states.js";
 import {Queue} from "../aux_structures/queue.js";
 import { disjointSet } from "../aux_structures/disjointSet.js";
 import { PriorityQueue } from "../aux_structures/priorityQueue.js";
+import { bfsShortestPath } from "../../boardAnalysis.js";
 
 function compareDistances(a, b) {
     return a.distance-b.distance
@@ -139,50 +140,6 @@ class BaseGameBoard extends Board {
     }
 
     /**
-     * Runs a breadth-first search algorithm. Returns the ETA to each 
-     *  cell from the start cell
-     * 
-     * @param {int} rows 
-     * @param {int} columns 
-     * @param {Object} start - {row : row, column : column}
-     */
-    bfsShortestPath(rows, columns, start) {
-        let queue = new Queue();
-        
-        let visited = [];
-        let distances = [];
-
-        for (let i=0;i<rows;i++) {
-            visited.push([]);
-            distances.push([]);
-            for (let j=0;j<columns;j++) {
-                visited[i].push(false);
-                distances[i].push(Number.MAX_VALUE);
-            }
-        }
-
-        queue.push(start);
-        visited[start.row][start.column] = true;
-        distances[start.row][start.column] = 0;
-        
-        while (!queue.isEmpty()) {
-            let current = queue.pop();
-            let neighbors = this.tiles[current.row][current.column].getOutEdges();
-            for (let i=0;i<4;i++) {
-                if (this.getTileState(neighbors[i].row, neighbors[i].column)==statesEnum.wall) continue;
-                if (neighbors[i].row <= 0 || neighbors[i].row >= rows-1) continue;
-                if (neighbors[i].column <= 0 || neighbors[i].column >= columns-1) continue;
-                if (visited[neighbors[i].row][neighbors[i].column]) continue;
-                queue.push(neighbors[i]);
-                visited[neighbors[i].row][neighbors[i].column] = true;
-                distances[neighbors[i].row][neighbors[i].column] = distances[current.row][current.column] + 1;
-            }
-        }
-
-        return distances;
-    }
-
-    /**
      * Sets up a random maze as the board. Modifies this.state.
      * This should be the only thing affecting walls.
      * 
@@ -197,8 +154,14 @@ class BaseGameBoard extends Board {
     generateMultipathMaze(rows, columns, numPaths, start, end, bias) {
         this.generateDfsSinglePathMaze(rows, columns, start, end, bias);
         
-        let startDistances = this.bfsShortestPath(rows, columns, start);
-        let targetDistances = this.bfsShortestPath(rows, columns, end);
+        function canTraverse(board, cell, bfsState) {
+            if (board.getTileState(cell.row, cell.column)==statesEnum.wall) return false;
+            if (cell.row <= 0 || cell.row >= rows-1) return false;
+            if (cell.column <= 0 || cell.column >= columns-1) return false;
+            return true;
+        }
+        let startDistances = bfsShortestPath(this, rows, columns, start, canTraverse);
+        let targetDistances = bfsShortestPath(this, rows, columns, end, canTraverse);
         
         // Walls to break
         let candidateWalls = []; 
@@ -285,7 +248,10 @@ class BaseGameBoard extends Board {
             
             if (pushBack) {
                 // Choose horizontal or vertical
-                if ((Math.random() < bias && candidateNeighbors[0].length != 0) || candidateNeighbors[1].length==0) 
+                // Ensure uniform distribution
+                
+                let randomMax = bias*candidateNeighbors[0].length+(1-bias)*candidateNeighbors[1].length;
+                if ((Math.random()*randomMax < bias*candidateNeighbors[0].length) || candidateNeighbors[1].length==0) 
                     candidateNeighbors = candidateNeighbors[0];
                 else 
                     candidateNeighbors = candidateNeighbors[1];
@@ -295,6 +261,21 @@ class BaseGameBoard extends Board {
                 visited[chosen.row][chosen.column] = true;
                 // Break wall
                 this.tiles[(chosen.row+current.row)/2][(chosen.column+current.column)/2].updateState(statesEnum.empty);
+                
+
+               /*let flatten = [];
+               for (let i=0;i<candidateNeighbors.length;i++) {
+                   for (let j=0;j<candidateNeighbors[i].length;j++) {
+                       flatten.push(candidateNeighbors[i][j]);
+                    }
+                }
+                shuffleArray(flatten);
+                let chosen = flatten[0];
+                
+                stack.push(chosen);
+                visited[chosen.row][chosen.column] = true;
+                this.tiles[(chosen.row+current.row)/2][(chosen.column+current.column)/2].updateState(statesEnum.empty);
+                */
             }
         }
         
