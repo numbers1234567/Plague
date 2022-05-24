@@ -1,8 +1,9 @@
 import {DisplayBoard} from "./displayControl.js";
 import {BaseGameBoard} from "./state/game_types/baseGame.js";
-import {findMinSpeed} from "./boardAnalysis.js";
+import {bfsShortestPath, findMinSpeed} from "./boardAnalysis.js";
 import { getBaseGameSettings } from "./settings.js";
 import { TrickyGameBoard } from "./state/game_types/trickyGame.js";
+import { statesEnum } from "./state/states.js";
 
 
 let gameContainer = document.getElementById("main-section");
@@ -12,6 +13,7 @@ let leftButton = document.getElementById("left-button");
 let downButton = document.getElementById("down-button");
 let upButton = document.getElementById("up-button");
 let rightButton = document.getElementById("right-button");
+let solveButton = document.getElementById("solve-all");
 
 let baseGameSelect = document.getElementById("base-game-select");
 let trickyGameSelect = document.getElementById("tricky-game-select");
@@ -33,18 +35,15 @@ function switchSetting(newSettingContainer) {
 baseGameSelect.onclick = function() {
     switchSetting(document.getElementById("base-game-settings"))
     startButton.onclick = baseGame;
-    console.log("Base Game Selected!");
 }
 
 trickyGameSelect.onclick = function() {
     switchSetting(document.getElementById("base-game-settings"))
     startButton.onclick = trickyGame;
-    console.log("Tricky Game Selected!");
 }
 
 let board = undefined;
 let displayController = undefined
-
 
 function onLose() {
     console.log("lose");
@@ -54,19 +53,78 @@ function onWin() {
     console.log("win");
 }
 
+let stepNumber=0;
+let speed;
+// Update board based on player movement
+function updateAll(playerOffset) {
+    board.movePlayer(playerOffset);
+    if ((++stepNumber)%speed==0) board.updateState();
+    displayController.updateDisplay();
+}
+
+// Plays the game from the current state to finish.
+function solveAll(playerSpeed) {
+    function canTraverseRats(board, cell, bfsState) {
+        if (board.getTileState(cell.row, cell.column)==statesEnum.wall) return false;
+        if (cell.row <= 0 || cell.row >= board.nRows-1) return false;
+        if (cell.column <= 0 || cell.column >= board.nCols-1) return false;
+        if ((bfsState.distances[bfsState.currentCell.row][bfsState.currentCell.column]+1)/playerSpeed >= board.etaMatrix[cell.row][cell.column]) return false;
+        return true;
+    }
+    // Perform bfs then deduce path from distances
+    let reversePath = [];
+    let playerPos = board.getPlayerPos();
+    let distances = bfsShortestPath(board, board.nRows, board.nCols, playerPos, canTraverseRats);
+    let target;
+    for (let i=0;i<board.nRows;i++) {
+        for (let j=0;j<board.nCols;j++) {
+            if (board.getTileState(i,j)==statesEnum.target) target = {row : i, column : j};
+        }
+    }
+
+    let current=target;
+    // Determine path
+    while (current.row!=playerPos.row || current.column!=playerPos.column) {
+        // Minimum neighbor
+        let offsets = [
+            {row : 0, column : -1}, 
+            {row : 0, column : +1},
+            {row : -1, column : 0},
+            {row : +1, column : 0}
+        ];
+
+        let nextMove = offsets[0];
+        let nextMoveDist = distances[nextMove.row+current.row][nextMove.column+current.column];
+        for (let i=1;i<4;i++) {
+            let thisDistance = distances[current.row+offsets[i].row][current.column+offsets[i].column]
+            if (thisDistance < nextMoveDist) {
+                nextMove = offsets[i];
+                nextMoveDist = thisDistance;
+            }
+        }
+        reversePath.push(nextMove);
+        current = {row : nextMove.row+current.row, column : nextMove.column+current.column};
+    }
+
+    function performMoves(path, i) {
+        if (i>=0) {
+            updateAll({row : path[i].row*-1, column : path[i].column*-1});
+            setTimeout(function() { performMoves(path, --i) }, 200);
+        }
+    }
+    performMoves(reversePath, reversePath.length-1);
+}
+
 /**
  * Sets up the button behavior for the game
  * @param {int} playerSpeed - How many moves the player moves per rat step
  */
 function setButtons(playerSpeed) {
-    let speed = playerSpeed;
-    let steps=0;
+    speed = playerSpeed;
 
-    function updateAll(playerOffset) {
-        board.movePlayer(playerOffset);
-        if ((++steps)%speed==0) board.updateState();
-        displayController.updateDisplay();
-    }
+    startButton.onclick = undefined;
+    
+    solveButton.onclick = function() { solveAll(playerSpeed) };
     leftButton.onclick= function() { updateAll({row : 0, column : -1}) };
     rightButton.onclick= function() { updateAll({row : 0, column : 1}) };
     upButton.onclick= function() { updateAll({row : -1, column : 0}) };
@@ -80,6 +138,7 @@ function applySettings() {
     
 }
 
+/* Game Initializations */
 function baseGame() {
     let settings = getBaseGameSettings();
 
@@ -97,6 +156,7 @@ function trickyGame() {
     board = new TrickyGameBoard(settings.rows, settings.columns, settings.numHoles, undefined, settings.bias);
     
     displayController = new DisplayBoard(document, gameContainer, board);
+
     displayController.updateDisplay();
 
     let playerSpeed = findMinSpeed(board);
