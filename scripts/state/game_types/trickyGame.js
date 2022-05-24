@@ -7,9 +7,9 @@ import { BaseGameBoard } from "./baseGame.js";
  *  is not the correct path
  */
 class TrickyGameBoard extends BaseGameBoard {
-    constructor(rows, columns, numHoles=undefined, numPaths=undefined, bias=undefined) {
-        super(rows, columns, undefined, numHoles, numPaths, bias);
-        while (!this.isTricky()) this.initRandom(rows, columns, numHoles, numPaths, bias);
+    constructor(rows, columns, numHoles=undefined, numPaths=undefined, bias=undefined, deadEnds=false) {
+        super(rows, columns, undefined, numHoles, numPaths, bias, deadEnds);
+        while (!this.isTricky()) this.initRandom(rows, columns, numHoles, numPaths, bias, deadEnds);
     }
 
     /**

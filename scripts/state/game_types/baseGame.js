@@ -46,7 +46,7 @@ class BaseGameTile extends Tile {
  * Define the base game.
  */
 class BaseGameBoard extends Board {
-    constructor(rows, columns, initialState=undefined, numHoles=undefined, numPaths=undefined, bias=undefined) {
+    constructor(rows, columns, initialState=undefined, numHoles=undefined, numPaths=undefined, bias=undefined, deadEnds=false) {
         super(rows, columns);
         // Holes from which rats can leave
         this.holes = [];
@@ -55,7 +55,7 @@ class BaseGameBoard extends Board {
         this.lost = false;
         this.steps = 0;
         if (initialState===undefined) {
-            this.initRandom(rows, columns, numHoles, numPaths, bias);
+            this.initRandom(rows, columns, numHoles, numPaths, bias, deadEnds);
         }
         else {
             if (numHoles!==undefined || numPaths!==undefined) {
@@ -71,10 +71,10 @@ class BaseGameBoard extends Board {
      * @param {int} numHoles - How many holes rats come from
      * @param {int} numEdges - How many edges between holes
      */
-    initRandom(rows, columns, numHoles=undefined, numPaths=undefined, bias=undefined) {
+    initRandom(rows, columns, numHoles=undefined, numPaths=undefined, bias=undefined, deadEnds=false) {
         // Arbitrary default settings
         if (numHoles===undefined) numHoles = rows*columns/80;
-        if (numPaths===undefined) numPaths = 6;
+        if (numPaths===undefined) numPaths = 12;
 
         let start = {row : 1, column : 1};
         let end = {row : rows-2, column : columns-2};
@@ -88,7 +88,7 @@ class BaseGameBoard extends Board {
         this.generateMultipathMaze(rows, columns, numPaths, start, end, bias);
         this.chooseRandomHoles(rows, columns, numHoles);
         this.setMinSpanningTreeHoles();
-        this.removeDeadEnds();
+        if (!deadEnds) this.removeDeadEnds();
         this.calcETAMatrix([{row : 1, column : columns-2}, {row : rows-2, column : 1}]);
     }
     
