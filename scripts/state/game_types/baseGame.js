@@ -89,7 +89,9 @@ class BaseGameBoard extends Board {
         this.chooseRandomHoles(rows, columns, numHoles);
         this.setMinSpanningTreeHoles();
         if (!deadEnds) this.removeDeadEnds();
-        this.calcETAMatrix([{row : 1, column : columns-2}, {row : rows-2, column : 1}]);
+        //this.calcETAMatrix([{row : 1, column : columns-2}, {row : rows-2, column : 1}]);
+        //this.calcETAMatrix([{row : 1, column : columns-2}]);
+        this.calcETAMatrix([{row : (rows-1)/2, column : (columns-1)/2}]);
     }
     
     fillBlocks() {

@@ -48,7 +48,6 @@ class PriorityQueue {
             toSwap = c1;
         }
         else return;
-        //console.log("wtf " + i);
         let buf = this.heap[i];
         this.heap[i] = this.heap[toSwap];
         this.heap[toSwap] = buf;
