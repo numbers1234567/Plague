@@ -46,11 +46,13 @@ let board = undefined;
 let displayController = undefined
 
 function onLose() {
-    console.log("lose");
+    disableAllButtons();
+    document.getElementById("lose-notif").style["display"] = "block";
 }
 
 function onWin() {
-    console.log("win");
+    disableAllButtons();
+    document.getElementById("win-notif").style["display"] = "block";
 }
 
 let stepNumber=0;
@@ -60,6 +62,8 @@ function updateAll(playerOffset) {
     board.movePlayer(playerOffset);
     if ((++stepNumber)%speed==0) board.updateState();
     displayController.updateDisplay();
+    if (board.stateWon()) onWin();
+    if (board.stateLost()) onLose();
 }
 
 // Plays the game from the current state to finish.
@@ -106,6 +110,7 @@ function solveAll(playerSpeed) {
         current = {row : nextMove.row+current.row, column : nextMove.column+current.column};
     }
 
+    // No sleep function. Recursively call function with timeout.
     function performMoves(path, i) {
         if (i>=0) {
             updateAll({row : path[i].row*-1, column : path[i].column*-1});
@@ -131,10 +136,10 @@ function setButtons(playerSpeed) {
     downButton.onclick= function() { updateAll({row : 1, column : 0}) };
 }
 
-/**
- * Stuff like player speed and general difficulty settings
- */
-function applySettings() {
+function disableAllButtons() {
+    let buttons = [startButton, solveButton, leftButton, rightButton, upButton, downButton];
+    for (let i=0;i<buttons.length;i++) 
+        buttons[i].onclick = undefined;
     
 }
 
