@@ -61,7 +61,7 @@ let speed;
 function updateAll(playerOffset) {
     board.movePlayer(playerOffset);
     if ((++stepNumber)%speed==0) board.updateState();
-    displayController.updateDisplay();
+    displayController.updateDisplay(500);
     if (board.stateWon()) onWin();
     if (board.stateLost()) onLose();
 }
@@ -150,7 +150,7 @@ function baseGame() {
     board = new BaseGameBoard(settings.rows, settings.columns, undefined, settings.numHoles, undefined, settings.bias);
     
     displayController = new DisplayBoard(document, gameContainer, board);
-    displayController.updateDisplay();
+    displayController.updateDisplay(500);
 
     let playerSpeed = findMinSpeed(board);
     setButtons(playerSpeed);
@@ -162,7 +162,7 @@ function trickyGame() {
     
     displayController = new DisplayBoard(document, gameContainer, board);
 
-    displayController.updateDisplay();
+    displayController.updateDisplay(500);
 
     let playerSpeed = findMinSpeed(board);
     setButtons(playerSpeed);

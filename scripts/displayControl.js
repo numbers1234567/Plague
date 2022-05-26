@@ -53,12 +53,11 @@ class DisplayBoard {
     * 
     */
    
-   updateDisplay() {
+   updateDisplay(animDuration) {
        let controller = this;
        for (let i=0;i<this.nRows;i++) {
-            for (let j=0;j<this.nCols;j++) {
-                controller.updateTileColor(i, j);
-            }
+            for (let j=0;j<this.nCols;j++) 
+                controller.updateTileColor(i, j, animDuration);
         }
     }
 
@@ -80,7 +79,7 @@ class DisplayBoard {
      * @param {int} row 
      * @param {int} column 
      */
-    updateTileColor(row, column) {
+    updateTileColor(row, column, animDuration) {
         let newColor = this.stateToColor(this.board.getTileState(row, column));
         
         this.dummy.style["background-color"] = newColor;
@@ -88,13 +87,13 @@ class DisplayBoard {
         
         this.elements[row][column].animate([
             { transform: 'scale(1)' }, {transform: 'scale(0)'}], 
-            {duration : 500, iterations : 1});
+            {duration : animDuration/2, iterations : 1});
 
         let controller = this;
         setTimeout(function() {
             controller.elements[row][column].style["background-color"] = newColor;
-            controller.elements[row][column].animate([{ transform: 'scale(0)' }, {transform: 'scale(1)'}], {duration : 500, iterations : 1});
-        }, 490);
+            controller.elements[row][column].animate([{ transform: 'scale(0)' }, {transform: 'scale(1)'}], {duration : animDuration/2, iterations : 1});
+        }, animDuration/2.1);
     }
 
     /**
