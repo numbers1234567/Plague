@@ -4,6 +4,7 @@ import {bfsShortestPath, findMinSpeed} from "./boardAnalysis.js";
 import { getBaseGameSettings } from "./settings.js";
 import { TrickyGameBoard } from "./state/game_types/trickyGame.js";
 import { statesEnum } from "./state/states.js";
+import { Queue } from "./state/aux_structures/queue.js";
 
 
 let gameContainer = document.getElementById("main-section");
@@ -57,13 +58,27 @@ function onWin() {
 
 let stepNumber=0;
 let speed;
+let moveQueue = new Queue();
+
+let updateAllLock = false;
+// Performs movement. Use a lock to prevent concurrent calls.
+function updateAllAux(ignoreLock=false) {
+    if (updateAllLock && !ignoreLock) return;
+    updateAllLock = true;
+    if (!moveQueue.isEmpty()) {
+        board.movePlayer(moveQueue.pop());
+        if ((++stepNumber)%speed==0) board.updateState();
+        displayController.updateDisplay(500);
+        if (board.stateWon()) onWin();
+        if (board.stateLost()) onLose();
+        setTimeout(function() {updateAllAux(ignoreLock=true)}, 500);
+    }
+    else updateAllLock = false;
+}
 // Update board based on player movement
 function updateAll(playerOffset) {
-    board.movePlayer(playerOffset);
-    if ((++stepNumber)%speed==0) board.updateState();
-    displayController.updateDisplay(500);
-    if (board.stateWon()) onWin();
-    if (board.stateLost()) onLose();
+    moveQueue.push(playerOffset);
+    updateAllAux();
 }
 
 // Plays the game from the current state to finish.
