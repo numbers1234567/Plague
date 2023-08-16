@@ -10,10 +10,6 @@ import { Queue } from "./state/aux_structures/queue.js";
 let gameContainer = document.getElementById("main-section");
 
 let startButton = document.getElementById("start-button");
-let leftButton = document.getElementById("left-button");
-let downButton = document.getElementById("down-button");
-let upButton = document.getElementById("up-button");
-let rightButton = document.getElementById("right-button");
 let solveButton = document.getElementById("solve-all");
 
 let baseGameSelect = document.getElementById("base-game-select");
@@ -47,12 +43,13 @@ let board = undefined;
 let displayController = undefined
 
 function onLose() {
-    disableAllButtons();
+    disableGameplayControls();
     document.getElementById("lose-notif").style["display"] = "block";
 }
 
 function onWin() {
-    disableAllButtons();
+    disableGameplayControls();
+    console.log("winner!");
     document.getElementById("win-notif").style["display"] = "block";
 }
 
@@ -62,7 +59,7 @@ let moveQueue = new Queue();
 
 let updateAllLock = false;
 // Performs movement. Use a lock to prevent concurrent calls.
-function updateAllAux(ignoreLock=false) {
+function playerMoveAux(ignoreLock=false) {
     if (updateAllLock && !ignoreLock) return;
     updateAllLock = true;
     if (!moveQueue.isEmpty()) {
@@ -71,14 +68,14 @@ function updateAllAux(ignoreLock=false) {
         displayController.updateDisplay(500);
         if (board.stateWon()) onWin();
         if (board.stateLost()) onLose();
-        setTimeout(function() {updateAllAux(ignoreLock=true)}, 500);
+        setTimeout(function() {playerMoveAux(ignoreLock=true)}, 500);
     }
     else updateAllLock = false;
 }
 // Update board based on player movement
-function updateAll(playerOffset) {
+function playerMove(playerOffset) {
     moveQueue.push(playerOffset);
-    updateAllAux();
+    playerMoveAux();
 }
 
 // Plays the game from the current state to finish.
@@ -128,7 +125,7 @@ function solveAll(playerSpeed) {
     // No sleep function. Recursively call function with timeout.
     function performMoves(path, i) {
         if (i>=0) {
-            updateAll({row : path[i].row*-1, column : path[i].column*-1});
+            playerMove({row : path[i].row*-1, column : path[i].column*-1});
             setTimeout(function() { performMoves(path, --i) }, 200);
         }
     }
@@ -136,26 +133,39 @@ function solveAll(playerSpeed) {
 }
 
 /**
- * Sets up the button behavior for the game
+ * Sets up the button behavior for gameplay
  * @param {int} playerSpeed - How many moves the player moves per rat step
- */
-function setButtons(playerSpeed) {
+*/
+function enableMovementControls(event) {
+    switch (event.code) {
+    case "ArrowUp":
+        playerMove({row : -1, column : 0});
+        break;
+    case "ArrowRight":
+        playerMove({row : 0, column : 1});
+        break;
+    case "ArrowDown":
+        playerMove({row : 1, column : 0});
+        break;
+    case "ArrowLeft":
+        playerMove({row : 0, column : -1});
+        break;
+    }
+}
+function enableGameplayControls(playerSpeed) {
     speed = playerSpeed;
-
+    
+    document.addEventListener("keyup", enableMovementControls);
     startButton.onclick = undefined;
     
     solveButton.onclick = function() { solveAll(playerSpeed) };
-    leftButton.onclick= function() { updateAll({row : 0, column : -1}) };
-    rightButton.onclick= function() { updateAll({row : 0, column : 1}) };
-    upButton.onclick= function() { updateAll({row : -1, column : 0}) };
-    downButton.onclick= function() { updateAll({row : 1, column : 0}) };
 }
 
-function disableAllButtons() {
-    let buttons = [startButton, solveButton, leftButton, rightButton, upButton, downButton];
+function disableGameplayControls() {
+    let buttons = [startButton, solveButton];
     for (let i=0;i<buttons.length;i++) 
         buttons[i].onclick = undefined;
-    
+    document.removeEventListener("keyup", enableMovementControls);
 }
 
 /* Game Initializations */
@@ -168,7 +178,7 @@ function baseGame() {
     displayController.updateDisplay(500);
 
     let playerSpeed = findMinSpeed(board);
-    setButtons(playerSpeed);
+    enableGameplayControls(playerSpeed);
 }
 
 function trickyGame() {
@@ -180,7 +190,7 @@ function trickyGame() {
     displayController.updateDisplay(500);
 
     let playerSpeed = findMinSpeed(board);
-    setButtons(playerSpeed);
+    enableGameplayControls(playerSpeed);
 }
 
 init();
